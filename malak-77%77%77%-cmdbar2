@@ -1,0 +1,211 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local player = Players.LocalPlayer
+local PlayerGui = player:WaitForChild("PlayerGui")
+
+-- الواجهة
+local function createUI()
+    -- فيصل قوي ياتعبانن
+    if PlayerGui:FindFirstChild("StandaloneCmdBar") then
+        PlayerGui.StandaloneCmdBar:Destroy()
+    end
+
+    local ScreenGui = Instance.new("ScreenGui", PlayerGui)
+    ScreenGui.Name = "StandaloneCmdBar"
+    ScreenGui.ResetOnSpawn = false 
+
+    -- [1] الصوت (1)
+    local clickSound = Instance.new("Sound", ScreenGui)
+    clickSound.SoundId = "rbxassetid://138567614125924"
+    clickSound.Volume = 1
+
+    -- [2] الزر
+    local ToggleButton = Instance.new("ImageButton", ScreenGui)
+    ToggleButton.Size = UDim2.new(0, 70, 0, 70)
+    ToggleButton.Position = UDim2.new(1, -90, 0.4, 0)
+    ToggleButton.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
+    ToggleButton.Active = true
+    ToggleButton.Draggable = true
+    ToggleButton.Image = "rbxthumb://type=Asset&id=132312717065310&w=420&h=420"
+    ToggleButton.ScaleType = Enum.ScaleType.Fit
+    Instance.new("UICorner", ToggleButton).CornerRadius = UDim.new(0, 50)
+
+    local ToggleStroke = Instance.new("UIStroke", ToggleButton)
+    ToggleStroke.Color = Color3.fromRGB(150, 50, 255)
+    ToggleStroke.Thickness = 3
+
+    -- الإسم
+    local StatusText = Instance.new("TextLabel", ToggleButton)
+    StatusText.Size = UDim2.new(1, 0, 0, 20)
+    StatusText.Position = UDim2.new(0, 0, 1, 5)
+    StatusText.Text = "شريط الأوامر"
+    StatusText.TextColor3 = Color3.fromRGB(170, 80, 255)
+    StatusText.Font = Enum.Font.GothamBold
+    StatusText.TextSize = 12
+    StatusText.BackgroundTransparency = 1
+    StatusText.TextXAlignment = Enum.TextXAlignment.Center
+
+    local StatusStroke = Instance.new("UIStroke", StatusText)
+    StatusStroke.Thickness = 1
+    StatusStroke.Color = Color3.fromRGB(150, 50, 255)
+
+    -- أداة
+    task.spawn(function()
+        while StatusText and StatusText.Parent do
+            for i = 0.3, 0.9, 0.05 do
+                pcall(function()
+                    StatusText.TextTransparency = 1 - i
+                    StatusStroke.Transparency = 1 - i
+                end)
+                task.wait(0.05)
+            end
+            for i = 0.9, 0.3, -0.05 do
+                pcall(function()
+                    StatusText.TextTransparency = 1 - i
+                    StatusStroke.Transparency = 1 - i
+                end)
+                task.wait(0.05)
+            end
+        end
+    end)
+
+    -- [3] زر سبام فيصل الي لا يعرف معنى الرحمة هيهيهيه
+    local FloatingCmdFrame = Instance.new("Frame", ScreenGui)
+    FloatingCmdFrame.Size = UDim2.new(0, 380, 0, 75)
+    FloatingCmdFrame.Position = UDim2.new(0.5, -190, 0.5, 0)
+    FloatingCmdFrame.BackgroundColor3 = Color3.fromRGB(15, 12, 20)
+    FloatingCmdFrame.Visible = false
+    FloatingCmdFrame.Active = true
+    FloatingCmdFrame.Draggable = true 
+    Instance.new("UICorner", FloatingCmdFrame).CornerRadius = UDim.new(0, 8)
+    
+    local FloatingStroke = Instance.new("UIStroke", FloatingCmdFrame)
+    FloatingStroke.Color = Color3.fromRGB(150, 50, 255)
+    FloatingStroke.Thickness = 2
+
+    -- المربع (H) (X)
+    local HeaderBar = Instance.new("Frame", FloatingCmdFrame)
+    HeaderBar.Size = UDim2.new(1, 0, 0, 28)
+    HeaderBar.BackgroundColor3 = Color3.fromRGB(40, 20, 65)
+    Instance.new("UICorner", HeaderBar).CornerRadius = UDim.new(0, 8)
+
+    local HeaderText = Instance.new("TextLabel", HeaderBar)
+    HeaderText.Size = UDim2.new(1, -35, 1, 0)
+    HeaderText.Position = UDim2.new(0, 10, 0, 0)
+    HeaderText.BackgroundTransparency = 1
+    HeaderText.Text = "شريط الأوامر"
+    HeaderText.TextColor3 = Color3.fromRGB(220, 180, 255)
+    HeaderText.Font = Enum.Font.GothamBold
+    HeaderText.TextSize = 12
+    HeaderText.TextXAlignment = Enum.TextXAlignment.Left
+
+    local HeaderTextStroke = Instance.new("UIStroke", HeaderText)
+    HeaderTextStroke.Thickness = 1
+    HeaderTextStroke.Color = Color3.fromRGB(150, 50, 255)
+
+    -- الهيدر
+    task.spawn(function()
+        while HeaderText and HeaderText.Parent do
+            for i = 0.4, 1, 0.05 do
+                pcall(function()
+                    HeaderText.TextTransparency = 1 - i
+                    HeaderTextStroke.Transparency = 1 - i
+                end)
+                task.wait(0.05)
+            end
+            for i = 1, 0.4, -0.05 do
+                pcall(function()
+                    HeaderText.TextTransparency = 1 - i
+                    HeaderTextStroke.Transparency = 1 - i
+                end)
+                task.wait(0.05)
+            end
+        end
+    end)
+
+    -- زر (X)
+    local CloseBtn = Instance.new("TextButton", HeaderBar)
+    CloseBtn.Size = UDim2.new(0, 28, 0, 28)
+    CloseBtn.Position = UDim2.new(1, -28, 0, 0)
+    CloseBtn.BackgroundTransparency = 1
+    CloseBtn.Text = "❌"
+    CloseBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+    CloseBtn.Font = Enum.Font.GothamBold
+    CloseBtn.TextSize = 13
+
+    -- كتابة الأمر
+    local FloatingInput = Instance.new("TextBox", FloatingCmdFrame)
+    FloatingInput.Size = UDim2.new(0, 290, 0, 32)
+    FloatingInput.Position = UDim2.new(0, 8, 0, 35)
+    FloatingInput.Text = ";"
+    FloatingInput.PlaceholderText = "اكتب الأمر هنا..."
+    FloatingInput.BackgroundColor3 = Color3.fromRGB(8, 6, 12)
+    FloatingInput.TextColor3 = Color3.new(1, 1, 1)
+    FloatingInput.Font = Enum.Font.Code
+    FloatingInput.TextSize = 14
+    FloatingInput.ClearTextOnFocus = false
+    Instance.new("UICorner", FloatingInput).CornerRadius = UDim.new(0, 5)
+
+    -- زر SPAM ()
+    local SpamExecBtn = Instance.new("TextButton", FloatingCmdFrame)
+    SpamExecBtn.Size = UDim2.new(0, 65, 0, 32)
+    SpamExecBtn.Position = UDim2.new(0, 305, 0, 35)
+    SpamExecBtn.Text = "SPAM"
+    SpamExecBtn.Font = Enum.Font.GothamBold
+    SpamExecBtn.TextSize = 11
+    SpamExecBtn.BackgroundColor3 = Color3.fromRGB(130, 40, 230)
+    SpamExecBtn.TextColor3 = Color3.new(1, 1, 1)
+    Instance.new("UICorner", SpamExecBtn).CornerRadius = UDim.new(0, 6)
+
+    local ExecStroke = Instance.new("UIStroke", SpamExecBtn)
+    ExecStroke.Color = Color3.fromRGB(180, 100, 255)
+    ExecStroke.Thickness = 1.2
+
+    -- [4] السبام
+    local function sendCmd(t)
+        pcall(function()
+            local r = ReplicatedStorage
+            local silentRemote = r:FindFirstChild("HDAdminHDClient") and r.HDAdminHDClient:FindFirstChild("Signals") and r.HDAdminHDClient.Signals:FindFirstChild("RequestCommandModification")
+            if silentRemote then 
+                silentRemote:InvokeServer(t) 
+            else
+                local req = ReplicatedStorage:FindFirstChild("RequestCommandModification", true)
+                if req then req:InvokeServer(t) end
+            end
+        end)
+    end
+
+    -- [5] تفعيل
+    ToggleButton.MouseButton1Click:Connect(function()
+        pcall(function() clickSound:Play() end)
+        FloatingCmdFrame.Visible = not FloatingCmdFrame.Visible
+    end)
+
+    CloseBtn.MouseButton1Click:Connect(function()
+        pcall(function() clickSound:Play() end)
+        FloatingCmdFrame.Visible = false
+    end)
+
+    local isSpamming = false
+    SpamExecBtn.MouseButton1Click:Connect(function()
+        pcall(function() clickSound:Play() end)
+        local text = FloatingInput.Text
+        if text ~= "" and text ~= ";" then 
+            isSpamming = not isSpamming
+            SpamExecBtn.Text = isSpamming and "STOP" or "SPAM"
+            SpamExecBtn.BackgroundColor3 = isSpamming and Color3.fromRGB(200, 40, 40) or Color3.fromRGB(130, 40, 230)
+            
+            if isSpamming then
+                task.spawn(function()
+                    while isSpamming do
+                        sendCmd(text)
+                        task.wait(0.00001) --
+                    end
+                end)
+            end
+        end
+    end)
+end
+
+-- تشغيل الدالة
+createUI()
